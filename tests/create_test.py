@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse, sys, re
+from pathlib import Path
+from subprocess import check_output
 
 
 ### Constants:
@@ -80,6 +82,12 @@ def readResultFile():
 			repdata.append(value)
 	return repdata
 
+def argDirectoryType(arg):
+	if Path(arg).is_dir():
+		return arg
+	else:
+		raise NotADirectoryError(arg)
+
 # Parse arguments
 parser = argparse.ArgumentParser(description="Create a new test file by using cpuid_tool raw and report files.")
 parser.add_argument("raw_file",
@@ -92,13 +100,20 @@ parser.add_argument("report_file",
 	type=argparse.FileType('r'),
 	default="report.txt",
 	help="an existing report file")
-parser.add_argument("test_file",
+parser.add_argument("test_directory",
 	nargs='?',
-	type=argparse.FileType('w'),
-	default=sys.stdout,
+	type=argDirectoryType,
 	help="test file to create (default is standard output)")
 args = parser.parse_args()
 
 # Create test file
+output_file = ""
 lines = readRawFile() + readResultFile()
-args.test_file.writelines([s + "\n" for s in lines])
+if args.test_directory:
+	git_root_directory = check_output("git rev-parse --show-toplevel", shell=True, text=True).strip()
+	test_file = check_output(f"{git_root_directory}/utils/get_brandstr_for_test_file.sh {args.raw_file.name}", shell=True, text=True).strip()
+	output_file = f"{args.test_directory}/{test_file}.test"
+handle = open(output_file, 'w') if output_file else sys.stdout
+handle.writelines([s + "\n" for s in lines])
+if output_file:
+	handle.close()

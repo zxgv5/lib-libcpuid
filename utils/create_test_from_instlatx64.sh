@@ -20,6 +20,7 @@ output_dir=""
 output_file="/dev/stdout"
 cpuid_tool="$GIT_ROOT_DIR/build/cpuid_tool/cpuid_tool"
 create_test="$GIT_ROOT_DIR/tests/create_test.py"
+get_test_name="$GIT_ROOT_DIR/utils/get_brandstr_for_test_file.sh"
 
 # Cleanup on exit
 on_exit() {
@@ -94,7 +95,7 @@ echo -e "\033[34mCreating '$REPORT_FILE' report file...\033[0m"
 
 # Generate test file name
 if [[ -n "$output_dir" ]]; then
-	test_file="$("$cpuid_tool" --load="$raw_file" --brandstr | head -n1 | sed -e 's|([^)]*)||g' -e 's|,||g' -e 's|w/|with|g' | cut -d'@' -f1 | xargs | sed -r 's|\s+|-|g' | tr '[:upper:]' '[:lower:]')"
+	test_file="$("$get_test_name" "$raw_file")"
 	if [[ -n "$test_file" ]]; then
 		read -r -p "'$test_file' will be the test file name, you can enter a different one if needed (without extension): " test_file_prompt
 		test_file="${test_file_prompt:-$test_file}"
