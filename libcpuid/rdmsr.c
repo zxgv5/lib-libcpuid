@@ -1140,6 +1140,9 @@ static double get_info_voltage(struct msr_info_t *info)
 		if (!err) return (double) reg / (1 << 13);
 	}
 	else if(info->id->vendor == VENDOR_AMD || info->id->vendor == VENDOR_HYGON) {
+		//FIXME: something is different starting Zen 5, using P-state gives wrong value (TheTumultuousUnicornOfDarkness/CPU-X#411)
+		if(info->id->x86.ext_family >= 0x1a)
+			return (double) CPU_INVALID_VALUE / 100;
 		/* Refer links above
 		MSRC001_00[6B:64][15:9]  is CpuVid (Jaguar and before)
 		MSRC001_00[6B:64][21:14] is CpuVid (Zen)
